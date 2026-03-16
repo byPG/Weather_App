@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1 class="title">Weather App</h1>
+
+      <form class="search-form" id="searchForm">
+        <input
+          type="text"
+          id="cityInput"
+          placeholder="Wpisz nazwę miasta..."
+          autocomplete="off"
+        />
+        <button type="submit">Szukaj</button>
+      </form>
+
+      <section class="weather-card" id="weatherCard">
+        <h2 id="cityName">Miasto</h2>
+        <p id="temperature">--°C</p>
+        <p id="description">Opis pogody</p>
+        <p id="wind">Wiatr: -- km/h</p>
+      </section>
+
+      <p class="message" id="message"></p>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>
