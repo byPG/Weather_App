@@ -1,3 +1,5 @@
+'strict';
+
 const searchForm = document.getElementById("searchForm");
 const cityInput = document.getElementById("cityInput");
 const cityName = document.getElementById("cityName");
@@ -88,7 +90,6 @@ async function getCoordinates(city) {
   }
 
   const exactMatch = findExactMatch(data.results, city);
-
   if (!exactMatch) {
     throw new Error("City not found. Try entering the full city name.");
   }
@@ -127,7 +128,7 @@ function resetWeatherCard() {
   temperature.textContent = "--°C";
   description.textContent = "Weather description";
   wind.textContent = "Wind: -- km/h";
-   weatherIcon.textContent = "⛅";
+  weatherIcon.textContent = "⛅";
 }
 
 searchForm.addEventListener("submit", async function (e) {
