@@ -5,6 +5,7 @@ const temperature = document.getElementById("temperature");
 const description = document.getElementById("description");
 const wind = document.getElementById("wind");
 const message = document.getElementById("message");
+const weatherIcon = document.getElementById("weatherIcon");
 
 function getWeatherDescription(code) {
   const weatherCodes = {
@@ -41,10 +42,38 @@ function getWeatherDescription(code) {
   return weatherCodes[code] || "Unknown weather conditions";
 }
 
+function getWeatherIcon(code) {
+  if (code === 0) return "☀️";
+  if (code === 1 || code === 2) return "🌤️";
+  if (code === 3) return "☁️";
+  if (code === 45 || code === 48) return "🌫️";
+  if ([51, 53, 55, 56, 57].includes(code)) return "🌦️";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "🌧️";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "🌨️";
+  if ([95, 96, 99].includes(code)) return "⛈️";
+
+  return "🌍";
+}
+
+function normalizeString(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function findExactMatch(results, userInput) {
+  const normalizedInput = normalizeString(userInput);
+
+  return results.find((location) => {
+    const normalizedName = normalizeString(location.name);
+    return normalizedName === normalizedInput;
+  });
+}
+
 async function getCoordinates(city) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-    city
-  )}&count=1&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`;
 
   const response = await fetch(url);
 
@@ -58,7 +87,13 @@ async function getCoordinates(city) {
     throw new Error("City not found.");
   }
 
-  return data.results[0];
+  const exactMatch = findExactMatch(data.results, city);
+
+  if (!exactMatch) {
+    throw new Error("City not found. Try entering the full city name.");
+  }
+
+  return exactMatch;
 }
 
 async function getWeather(latitude, longitude) {
@@ -84,6 +119,15 @@ function displayWeather(location, weather) {
   temperature.textContent = `${Math.round(weather.temperature_2m)}°C`;
   description.textContent = getWeatherDescription(weather.weather_code);
   wind.textContent = `Wind: ${weather.wind_speed_10m} km/h`;
+  weatherIcon.textContent = getWeatherIcon(weather.weather_code);
+}
+
+function resetWeatherCard() {
+  cityName.textContent = "City";
+  temperature.textContent = "--°C";
+  description.textContent = "Weather description";
+  wind.textContent = "Wind: -- km/h";
+   weatherIcon.textContent = "⛅";
 }
 
 searchForm.addEventListener("submit", async function (e) {
@@ -93,6 +137,7 @@ searchForm.addEventListener("submit", async function (e) {
 
   if (city === "") {
     message.textContent = "Please enter a city name.";
+    resetWeatherCard();
     return;
   }
 
@@ -106,9 +151,6 @@ searchForm.addEventListener("submit", async function (e) {
     message.textContent = "";
   } catch (error) {
     message.textContent = error.message;
-    cityName.textContent = "City";
-    temperature.textContent = "--°C";
-    description.textContent = "Weather description";
-    wind.textContent = "Wind: -- km/h";
+    resetWeatherCard();
   }
 });
