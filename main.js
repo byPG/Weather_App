@@ -1,5 +1,3 @@
-'strict';
-
 const searchForm = document.getElementById("searchForm");
 const cityInput = document.getElementById("cityInput");
 const cityName = document.getElementById("cityName");
@@ -75,7 +73,9 @@ function findExactMatch(results, userInput) {
 }
 
 async function getCoordinates(city) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+    city
+  )}&count=10&language=en&format=json`;
 
   const response = await fetch(url);
 
@@ -90,6 +90,7 @@ async function getCoordinates(city) {
   }
 
   const exactMatch = findExactMatch(data.results, city);
+
   if (!exactMatch) {
     throw new Error("City not found. Try entering the full city name.");
   }
@@ -131,8 +132,32 @@ function resetWeatherCard() {
   weatherIcon.textContent = "⛅";
 }
 
-searchForm.addEventListener("submit", async function (e) {
-  e.preventDefault();
+function saveLastCity(city) {
+  localStorage.setItem("lastCity", city);
+}
+
+function getLastCity() {
+  return localStorage.getItem("lastCity");
+}
+
+async function loadWeatherByCity(city) {
+  message.textContent = "Loading...";
+
+  try {
+    const location = await getCoordinates(city);
+    const weather = await getWeather(location.latitude, location.longitude);
+
+    displayWeather(location, weather);
+    message.textContent = "";
+    saveLastCity(location.name);
+  } catch (error) {
+    message.textContent = error.message;
+    resetWeatherCard();
+  }
+}
+
+searchForm.addEventListener("submit", async function (event) {
+  event.preventDefault();
 
   const city = cityInput.value.trim();
 
@@ -142,16 +167,15 @@ searchForm.addEventListener("submit", async function (e) {
     return;
   }
 
-  message.textContent = "Loading...";
+  await loadWeatherByCity(city);
+  cityInput.value = "";
+});
 
-  try {
-    const location = await getCoordinates(city);
-    const weather = await getWeather(location.latitude, location.longitude);
+window.addEventListener("load", async function () {
+  const lastCity = getLastCity();
 
-    displayWeather(location, weather);
-    message.textContent = "";
-  } catch (error) {
-    message.textContent = error.message;
-    resetWeatherCard();
+  if (lastCity) {
+    cityInput.value = lastCity;
+    await loadWeatherByCity(lastCity);
   }
 });
