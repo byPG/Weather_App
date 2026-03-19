@@ -7,7 +7,7 @@ const wind = document.getElementById("wind");
 const message = document.getElementById("message");
 const weatherIcon = document.getElementById("weatherIcon");
 
-function getWeatherDescription(code) {
+function getWeatherDescription(code) { //when the code (from API) is 0, it will return "Clear sky", when the code is 1, it will return "Mainly clear", and so on. If the code is not found in the weatherCodes object, it will return "Unknown weather conditions".
   const weatherCodes = {
     0: "Clear sky",
     1: "Mainly clear",
@@ -39,7 +39,7 @@ function getWeatherDescription(code) {
     99: "Thunderstorm with heavy hail",
   };
 
-  return weatherCodes[code] || "Unknown weather conditions";
+  return weatherCodes[code] || "Unknown weather conditions"; //fallback in case the code is not found in the weatherCodes object
 }
 
 function getWeatherIcon(code) {
@@ -59,27 +59,26 @@ function normalizeString(value) {
   return value
     .trim()
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .normalize("NFD") //normalize the string to decompose accented characters into their base characters and diacritical marks
+    .replace(/[\u0300-\u036f]/g, ""); //remove diacritical marks using a regular expression that targets the Unicode range for combining diacritical marks
 }
 
-function findExactMatch(results, userInput) {
+function findExactMatch(results, userInput) { //compares the normalized user input with the normalized location names from the API results to find an exact match
   const normalizedInput = normalizeString(userInput);
 
   return results.find((location) => {
     const normalizedName = normalizeString(location.name);
-    return normalizedName === normalizedInput;
+    return normalizedName === normalizedInput; //if it finds a match, it returns the location object; if not, it returns undefined
   });
 }
 
+//function which takes a city name as input, constructs the appropriate API URL, and fetches the geographical coordinates for that city
 async function getCoordinates(city) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-    city
-  )}&count=10&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`; //encodeURIComponent is used to ensure that the city name is properly formatted
 
   const response = await fetch(url);
 
-  if (!response.ok) {
+  if (!response.ok) { 
     throw new Error("Error while fetching location data.");
   }
 
@@ -98,6 +97,7 @@ async function getCoordinates(city) {
   return exactMatch;
 }
 
+//function which fetches the curren weather data for the given latitude and longitude
 async function getWeather(latitude, longitude) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=kmh`;
 
@@ -113,9 +113,10 @@ async function getWeather(latitude, longitude) {
     throw new Error("Weather data is unavailable.");
   }
 
-  return data.current;
+  return data.current; //returns the current weather data, which includes temperature, weather code, and wind speed
 }
 
+//show the weather result in UI
 function displayWeather(location, weather) {
   cityName.textContent = `${location.name}, ${location.country}`;
   temperature.textContent = `${Math.round(weather.temperature_2m)}°C`;
@@ -124,6 +125,7 @@ function displayWeather(location, weather) {
   weatherIcon.textContent = getWeatherIcon(weather.weather_code);
 }
 
+//resets the weather card to its default state
 function resetWeatherCard() {
   cityName.textContent = "City";
   temperature.textContent = "--°C";
@@ -140,6 +142,7 @@ function getLastCity() {
   return localStorage.getItem("lastCity");
 }
 
+//combine the process of fetching the coordinates and weather data, updating the UI, and handling errors into a single function that can be called when the user submits a city name or when the page loads with a previously searched city
 async function loadWeatherByCity(city) {
   message.textContent = "Loading...";
 
@@ -149,13 +152,16 @@ async function loadWeatherByCity(city) {
 
     displayWeather(location, weather);
     message.textContent = "";
+
     saveLastCity(location.name);
+
   } catch (error) {
     message.textContent = error.message;
     resetWeatherCard();
   }
 }
 
+//event listener for the form submission, which prevents the default form behavior, retrieves the city name from the input field, and calls the loadWeatherByCity function to fetch and display the weather data for that city
 searchForm.addEventListener("submit", async function (event) {
   event.preventDefault();
 
@@ -171,6 +177,7 @@ searchForm.addEventListener("submit", async function (event) {
   cityInput.value = "";
 });
 
+//event listener for the page load, which checks if there is a previously searched city stored in localStorage and, if so, automatically loads the weather data for that city
 window.addEventListener("load", async function () {
   const lastCity = getLastCity();
 
