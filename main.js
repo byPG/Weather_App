@@ -66,8 +66,8 @@ function normalizeString(value) {
 function findExactMatch(results, userInput) { //compares the normalized user input with the normalized location names from the API results to find an exact match
   const normalizedInput = normalizeString(userInput);
 
-  return results.find((location) => {
-    const normalizedName = normalizeString(location.name);
+  return results.find((item) => {
+    const normalizedName = normalizeString(item.name);
     return normalizedName === normalizedInput; //if it finds a match, it returns the location object; if not, it returns undefined
   });
 }
