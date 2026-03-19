@@ -177,8 +177,8 @@ searchForm.addEventListener("submit", async function (event) {
   cityInput.value = "";
 });
 
-//event listener for the page load, which checks if there is a previously searched city stored in localStorage and, if so, automatically loads the weather data for that city
-window.addEventListener("load", async function () {
+//event listener for the DOMContentLoaded event, which checks if there is a previously searched city stored in localStorage and, if so, automatically loads the weather data for that city when the page is loaded
+document.addEventListener("DOMContentLoaded", async function () {
   const lastCity = getLastCity();
 
   if (lastCity) {
@@ -186,3 +186,4 @@ window.addEventListener("load", async function () {
     await loadWeatherByCity(lastCity);
   }
 });
+
